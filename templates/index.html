@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematics CBT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="center-page">
+    <main class="start-card">
+        <div class="logo">CBT</div>
+        <h1>Mathematics CBT Examination</h1>
+        <p class="subtitle">Computer Based Test Practice</p>
 
+        <div class="info-grid">
+            <div><strong>{{ total }}</strong><span>Questions</span></div>
+            <div><strong>{{ duration }} min</strong><span>Duration</span></div>
+            <div><strong>A–D</strong><span>Options</span></div>
+        </div>
+
+        <div class="instructions">
+            <h3>Instructions</h3>
+            <ul>
+                <li>Select one answer for each question.</li>
+                <li>You can move between questions using Previous and Next.</li>
+                <li>Your answers are saved as you move through the exam.</li>
+                <li>The examination is submitted automatically when the timer expires.</li>
+            </ul>
+        </div>
+
+        <form action="{{ url_for('start') }}" method="post">
+            <button class="primary-btn" type="submit">Start Examination</button>
+        </form>
+    </main>
+</body>
+</html>
