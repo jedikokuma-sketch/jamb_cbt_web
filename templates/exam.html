@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathematics CBT - Question {{ number }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="topbar">
+    <div>
+        <div class="brand">MATHEMATICS CBT</div>
+        <div class="candidate">Practice Examination</div>
+    </div>
+    <div class="timer-box">
+        <span>TIME LEFT</span>
+        <strong id="timer">--:--</strong>
+    </div>
+</header>
+
+<main class="exam-layout">
+    <section class="question-card">
+        <div class="question-meta">
+            <strong>Question {{ number }} of {{ total }}</strong>
+        </div>
+
+        <div class="question-text">{{ question.question }}</div>
+
+        <form id="answerForm">
+            <input type="hidden" name="number" value="{{ number }}">
+            <div class="options">
+                {% for option in question.options %}
+                <label class="option">
+                    <input
+                        type="radio"
+                        name="answer"
+                        value="{{ option }}"
+                        {% if answers.get((number - 1)|string) == option %}checked{% endif %}
+                    >
+                    <span class="option-letter">{{ "ABCD"[loop.index0] }}</span>
+                    <span>{{ option }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </form>
+
+        <div class="nav-row">
+            {% if number > 1 %}
+            <button class="secondary-btn" onclick="saveAndGo('{{ url_for('exam', number=number-1) }}')">← Previous</button>
+            {% else %}
+            <span></span>
+            {% endif %}
+
+            {% if number < total %}
+            <button class="primary-btn small" onclick="saveAndGo('{{ url_for('exam', number=number+1) }}')">Next →</button>
+            {% else %}
+            <button class="submit-btn" onclick="submitExam()">Submit Exam</button>
+            {% endif %}
+        </div>
+    </section>
+
+    <aside class="palette-card">
+        <h3>Question Palette</h3>
+        <div class="palette">
+            {% for i in range(total) %}
+                {% set key = i|string %}
+                <a
+                    class="palette-number
+                    {% if i + 1 == number %} current{% elif key in answers %} answered{% endif %}"
+                    href="{{ url_for('exam', number=i+1) }}"
+                    onclick="return saveBeforeLink(event, this.href)"
+                >{{ i + 1 }}</a>
+            {% endfor %}
+        </div>
+
+        <div class="legend">
+            <div><span class="dot current-dot"></span> Current</div>
+            <div><span class="dot answered-dot"></span> Answered</div>
+            <div><span class="dot unanswered-dot"></span> Unanswered</div>
+        </div>
+    </aside>
+</main>
+
+<script>
+const initialRemaining = {{ remaining }};
+let remaining = initialRemaining;
+let expired = false;
+
+function updateTimer() {
+    const timer = document.getElementById("timer");
+    const minutes = Math.floor(remaining / 60);
+    const seconds = remaining % 60;
+
+    timer.textContent =
+        String(minutes).padStart(2, "0") + ":" +
+        String(seconds).padStart(2, "0");
+
+    if (remaining <= 60) {
+        timer.classList.add("danger");
+    }
+
+    if (remaining <= 0 && !expired) {
+        expired = true;
+        alert("Time is up. Your examination will be submitted automatically.");
+        window.location.href = "{{ url_for('submit') }}";
+        return;
+    }
+
+    remaining--;
+}
+
+updateTimer();
+setInterval(updateTimer, 1000);
+
+async function saveAnswer() {
+    const form = document.getElementById("answerForm");
+    const data = new FormData(form);
+
+    await fetch("{{ url_for('answer') }}", {
+        method: "POST",
+        body: data
+    });
+}
+
+async function saveAndGo(url) {
+    await saveAnswer();
+    window.location.href = url;
+}
+
+async function saveBeforeLink(event, url) {
+    event.preventDefault();
+    await saveAnswer();
+    window.location.href = url;
+    return false;
+}
+
+async function submitExam() {
+    await saveAnswer();
+
+    if (confirm("Are you sure you want to submit your examination?")) {
+        window.location.href = "{{ url_for('submit') }}";
+    }
+}
+</script>
+</body>
+</html>
